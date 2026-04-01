@@ -213,7 +213,7 @@ netVisual_aggregate(HD.cellchat, signaling = pathways.show, layout = "chord")
 # 热图
 netVisual_heatmap(HD.cellchat, signaling = pathways.show, color.heatmap = "Reds")
 
-# 4. 指定通路 CellPhoneDB style 受配体气泡图
+# 4. CellPhoneDB style 受配体气泡图
 netVisual_bubble(HD.cellchat, sources.use = "Tcell", remove.isolate = FALSE)
 
 # 5. 分组和弦图
@@ -403,7 +403,6 @@ write.table(metadata, "cellphonedb_meta.txt",
 
 # 方法 2：使用官方准备脚本
 source("prepar_input_for_cpdb5.R")
-# 需要提供：seurat_obj, celltype_column, output_prefix
 ```
 
 ### Python 端运行
@@ -425,8 +424,6 @@ cellphonedb statics-single Normalized_counts.txt cellphonedb_meta.txt \
 
 # 输出文件说明
 # statistical_analysis_deconvoluted_*.txt      # 去卷积丰度
-# statistical_analysis_deconvoluted_percents_*.txt  # 百分比
-# statistical_analysis_interaction_scores_*.txt     # 互作评分
 # statistical_analysis_means_*.txt             # 平均表达值
 # statistical_analysis_pvalues_*.txt            # 置换检验 p 值
 # statistical_analysis_significant_means_*.txt  # 显著互作（p < 0.05）的平均表达值
@@ -458,7 +455,7 @@ sig_pairs <- sig_pairs[, -c(1, 3:11)]
 sig_pairs <- sig_pairs[rowSums(sig_pairs <= 0.05) != 0, ]
 
 # 选择展示的受配体对
-selected_pairs <- sig_pairs$interacting_pair[1:40]  # 取前 40
+selected_pairs <- sig_pairs$interacting_pair[1:40]
 
 # 合并 mean 与 pvalue
 sel_pval <- all_pval[match(selected_pairs, intr_pairs), selected_celltype]
@@ -468,7 +465,6 @@ pval <- unlist(sel_pval)
 pval[pval == 0] <- 0.00001
 plot.data <- cbind(df_names, pval)
 
-# 绑定 mean
 plot.data$mean <- unlist(sel_means)
 colnames(plot.data) <- c("interacting_pair", "celltype_pair", "pval", "mean")
 
@@ -693,21 +689,6 @@ make_lr_prod_activity_plots(seu, ligand_activities, top_ligands = 10)
 saveRDS(ligand_activities, "nichenet_ligand_activities.rds")
 ```
 
-### 配体-靶基因信号推断
-
-```r
-# 基于推断的活性配体，分析下游靶基因
-# 参考：推断ligands-target信号通路.R
-active_ligands <- ligand_activities %>%
-  filter(pvalue < 0.05) %>%
-  arrange(-pearson) %>%
-  pull(ligand) %>%
-  head(20)
-
-# 查看靶基因网络
-# 输出为 bipartite network，可视化配体-受体-靶基因调控链条
-```
-
 ---
 
 ## 🔬 方法五：iTALK（快速探索）
@@ -760,7 +741,7 @@ LRPlot(res[1:60, ],
 | MultiNichenet 基因过滤过严 | 降低 `fraction_cutoff`（默认 0.05），或 `min_sample_prop` |
 | 内存不足 | 使用 `future::plan("multisession")` 并行计算，减少 `workers` 数量 |
 | Cellphonedb V5 无重复报错 | 使用 `cellphonedb statics-single` 命令替代 `statics` |
-| iTALK 作图报错 | 确保 `cell_type` 列名正确：celltype 必须重命名为 `cell_from` 等所需格式 |
+| iTALK 作图报错 | 确保 `cell_type` 列名正确：celltype 必须重命名以符合 iTALK 要求 |
 
 ---
 
